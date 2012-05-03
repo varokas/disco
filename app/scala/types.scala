@@ -7,6 +7,6 @@ trait Entity {
 
 object EntityType extends Enumeration {
 	type EntityType = Value
- 	val StoredProc, View, Table, Trigger, File = Value
+ 	val StoredProc, View, Table, Trigger, File, Function = Value
 }
 
