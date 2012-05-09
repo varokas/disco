@@ -30,6 +30,22 @@ class MSSQLEntityReader extends EntityReader {
 	}
 }
 
+class FileEntityReader(filePath:String) extends EntityReader {
+	import java.io.File
+
+	val pp = new jregex.util.io.PathPattern(filePath)
+	val e = pp.enumerateFiles()
+
+	override def getEntitySpecs():Iterable[EntitySpec] = {
+	   val l = new scala.collection.mutable.ListBuffer[File]()
+	   while(e.hasMoreElements()) {
+	     l += e.nextElement().asInstanceOf[File]
+	   }
+	   val specs = l.map( f => new EntitySpec(f.getAbsolutePath(), EntityType.File) )
+	   return specs.toList 
+	}
+}
+
 class DBAccess(className: String, uri: String, username:String, password:String) {
   Class.forName(className)
   val conn = DriverManager.getConnection(uri, username, password)

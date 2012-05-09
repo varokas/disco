@@ -4,11 +4,10 @@ import play.api._
 import play.api.mvc._
 
 object Application extends Controller {
-  val mssqlReader = new com.huskycode.disco.reader.MSSQLEntityReader()
-
   def index = Action {
+    val r = new com.huskycode.disco.runner.CommandRunner("ls")
     Ok(views.html.index(
-    	mssqlReader.getEntitySpecs().toString
+      r.runCommand().toString
     ))
   }
   

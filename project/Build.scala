@@ -10,7 +10,8 @@ object ApplicationBuild extends Build {
     val appDependencies = Seq(
       "org.neo4j" % "neo4j" % "1.7",
       "org.apache.commons" % "commons-lang3" % "3.0",
-      "net.sourceforge.jtds" % "jtds" % "1.2.4"
+      "net.sourceforge.jtds" % "jtds" % "1.2.4",
+      "net.sourceforge.jregex" % "jregex" % "1.2_01"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
