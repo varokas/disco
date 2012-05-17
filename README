@@ -1,4 +1,4 @@
-This is your new Play 2.0 application
-=====================================
+Dependencies Discovery Tool
+===========================
 
-This file will be packaged with your application, when using `play dist`.
+Discover where your table/views/store procs get used in your project.
