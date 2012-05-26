@@ -9,7 +9,7 @@ trait EntityReader {
 	def getEntitySpecs():Iterable[EntitySpec]
 }
 
-class MSSQLEntityReader extends EntityReader {
+class MSSQLEntityReader(driver:String, url:String, username:String, password:String) extends EntityReader {
 	val queries = Map( 
 		EntityType.StoredProc -> "SELECT name from sys.procedures",
 		EntityType.View -> "SELECT name from sys.views",
@@ -18,12 +18,7 @@ class MSSQLEntityReader extends EntityReader {
 		EntityType.Function -> "select name from sys.objects where type='FN'"
 	)
 
-	val dbAccess = new DBAccess(
-		play.Play.application().configuration().getString("sqlreader.main.driver"),
-		play.Play.application().configuration().getString("sqlreader.main.url"),
-		play.Play.application().configuration().getString("sqlreader.main.username"),
-		play.Play.application().configuration().getString("sqlreader.main.password")
-	)
+	val dbAccess = new DBAccess(driver, url, username, password) 
 
 	override def getEntitySpecs():Iterable[EntitySpec] = {
 		queries.flatMap{ case (typ, query) => dbAccess.query( query, rs => new EntitySpec(rs.getString("name"), typ)  )}

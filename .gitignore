@@ -7,3 +7,4 @@ tmp
 dist
 
 conf/dev.conf
+*.swp

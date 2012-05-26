@@ -5,9 +5,8 @@ import play.api.mvc._
 
 object Application extends Controller {
   def index = Action {
-    val r = new com.huskycode.disco.runner.CommandRunner("ls")
     Ok(views.html.index(
-      r.runCommand().toString
+       new com.huskycode.disco.executor.Executor().parseReaders().toString
     ))
   }
   
