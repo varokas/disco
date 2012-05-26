@@ -1,10 +1,26 @@
 package com.huskycode.disco.executor
 import com.huskycode.disco.reader._
+import com.huskycode.disco.deps._
 
 class Executor {
+  val playConfig = play.api.Play.current.configuration 
+
+  def parseDeps():DepsBuilder = {
+    val depsBuilder = new DepsBuilder() 
+    playConfig.getConfig("deps") match {
+      case Some(deps) => {
+        val depLines = deps.subKeys.map { deps.getConfig(_).get } 
+        depLines.foreach{ depLine => 
+          val from = depLine.getString("from").get
+          val tos = depLine.getString("to").get.split(",").toList
+          depsBuilder.addNode(from,tos)
+        }
+      } 
+    }
+    return depsBuilder
+  }
 
   def parseReaders():Iterable[EntityReader] = {
-    val playConfig = play.api.Play.current.configuration 
     val readersNode = playConfig.getConfig("readers")
     
     readersNode match {
@@ -34,4 +50,6 @@ class Executor {
       }
     }
   }
+  
+  //private def createDep(config: play.api.Configuration):
 }

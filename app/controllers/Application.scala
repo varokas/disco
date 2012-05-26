@@ -6,8 +6,9 @@ import play.api.mvc._
 object Application extends Controller {
   def index = Action {
     Ok(views.html.index(
-       new com.huskycode.disco.executor.Executor().parseReaders().toString
+        //play.api.Play.current.configuration.getConfig("deps").get.getConfig("d1").get.getString("to").get.toString
+      new com.huskycode.disco.executor.Executor().parseDeps().getLookupMap().toString
     ))
-  }
+  }  
   
 }
