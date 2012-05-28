@@ -18,9 +18,8 @@ class MSSQLEntityReader(driver:String, url:String, username:String, password:Str
 		EntityType.Function -> "select name from sys.objects where type='FN'"
 	)
 
-	val dbAccess = new DBAccess(driver, url, username, password) 
-
 	override def getEntitySpecs():Iterable[EntitySpec] = {
+	        val dbAccess = new DBAccess(driver, url, username, password) 
 		queries.flatMap{ case (typ, query) => dbAccess.query( query, rs => new EntitySpec(rs.getString("name"), typ)  )}
 	}
 }

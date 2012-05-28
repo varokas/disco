@@ -8,6 +8,10 @@ import org.neo4j.tooling.GlobalGraphOperations
 
 import scala.collection.JavaConversions._
 
+object GraphDBService extends GraphDBService {
+
+}
+
 class GraphDBService(val graphDbDir:String) {
 	def this() = this("target/db/graphDb")
 
@@ -56,7 +60,7 @@ class GraphDBService(val graphDbDir:String) {
 
 	private def getIndexValue(name:String, entityType:EntityType.Value) = name + "-" + entityType.toString
 
-	private[graphdb] def cleanupGraphDb() = {
+	def cleanupGraphDb() = {
 		val tx = graphDb.beginTx()
 		try
 		{

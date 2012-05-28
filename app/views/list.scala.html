@@ -1,0 +1,18 @@
+@(entitiesMap:Map[com.huskycode.disco.types.EntityType.Value,List[String]])
+
+<!DOCTYPE html>
+
+<html>
+<head>
+
+</head>
+<body>
+  @entitiesMap.map { case (t,el) => 
+    <h2>@t.toString</h2>
+    <ul>
+     @el.map { e => <li>@e</li> }
+    </ul>  
+  } 
+</body>
+</html>
+

@@ -1,9 +1,16 @@
 package com.huskycode.disco.executor
 import com.huskycode.disco.reader._
 import com.huskycode.disco.deps._
-
+import com.huskycode.disco.graphdb._
 class Executor {
   val playConfig = play.api.Play.current.configuration 
+  
+  def execute() = { 
+    val readers = parseReaders()
+    GraphDBService.cleanupGraphDb()
+    val entitySpecs = readers.flatMap{ r => r.getEntitySpecs() } 
+    entitySpecs.foreach { es => GraphDBService.createEntity(es.name, es.entityType) }     
+  }
 
   def parseDeps():DepsBuilder = {
     val depsBuilder = new DepsBuilder() 
