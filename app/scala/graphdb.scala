@@ -22,7 +22,7 @@ class GraphDBService(val graphDbDir:String) {
 	val index = graphDb.index().forNodes("nodes") 
 	registerShutdownHook()
 
-	def createEntity(name:String, entityType:EntityType.Value):Entity = {
+	def createEntity(name:String, entityType:EntityType.Value, reader:String):Entity = {
 		var entity:Neo4jEntity = null
 		val tx = graphDb.beginTx()
 		try
@@ -30,6 +30,7 @@ class GraphDBService(val graphDbDir:String) {
 			val node = graphDb.createNode()
 			node.setProperty(Neo4jEntity.NAME_PROPERTY, name)
 			node.setProperty(Neo4jEntity.TYPE_PROPERTY, entityType.toString)
+                        node.setProperty(Neo4jEntity.READER_PROPERTY, reader)
 
 			entity = new Neo4jEntity(node)
 			index.add(entity.neo4jNode, ENTITY_INDEX_KEY, getIndexValue(name, entityType))
@@ -90,6 +91,7 @@ class GraphDBService(val graphDbDir:String) {
 object Neo4jEntity {
 	val NAME_PROPERTY = "name"
 	val TYPE_PROPERTY = "type"
+        val READER_PROPERTY = "reader"
 }
 
 class Neo4jEntity private[graphdb](aNode: Node) extends Entity {
@@ -97,6 +99,7 @@ class Neo4jEntity private[graphdb](aNode: Node) extends Entity {
 
 	def name = node.getProperty(Neo4jEntity.NAME_PROPERTY).toString
 	def entityType = EntityType.withName(node.getProperty(Neo4jEntity.TYPE_PROPERTY).toString)
+        def reader = node.getProperty(Neo4jEntity.READER_PROPERTY)
 
 	def neo4jNode = node
 
@@ -104,6 +107,7 @@ class Neo4jEntity private[graphdb](aNode: Node) extends Entity {
 		new org.apache.commons.lang.builder.ToStringBuilder(this)
 			.append("name", name)
 			.append("type", entityType.toString)
+                        .append("reader", reader)
 			.toString
 	}
 
@@ -111,6 +115,7 @@ class Neo4jEntity private[graphdb](aNode: Node) extends Entity {
 		new org.apache.commons.lang.builder.HashCodeBuilder()
 			.append(name)
 			.append(entityType.toString)
+                        .append(reader)
 			.toHashCode
 	}
 
@@ -119,6 +124,7 @@ class Neo4jEntity private[graphdb](aNode: Node) extends Entity {
 				new org.apache.commons.lang.builder.EqualsBuilder()
 					.append(name, other.name)
 					.append(entityType, other.entityType)
+                                        .append(reader, other.reader)
 					.isEquals
 		   }
 		   case _ => false 

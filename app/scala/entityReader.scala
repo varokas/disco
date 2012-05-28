@@ -6,10 +6,11 @@ import java.sql.{ResultSet, DriverManager}
 case class EntitySpec(name:String, entityType:EntityType.Value)
 
 trait EntityReader {
+   def getName():String
 	def getEntitySpecs():Iterable[EntitySpec]
 }
 
-class MSSQLEntityReader(driver:String, url:String, username:String, password:String) extends EntityReader {
+class MSSQLEntityReader(name:String, driver:String, url:String, username:String, password:String) extends EntityReader {
 	val queries = Map( 
 		EntityType.StoredProc -> "SELECT name from sys.procedures",
 		EntityType.View -> "SELECT name from sys.views",
@@ -17,6 +18,8 @@ class MSSQLEntityReader(driver:String, url:String, username:String, password:Str
 		EntityType.Trigger -> "SELECT name from sys.triggers",
 		EntityType.Function -> "select name from sys.objects where type='FN'"
 	)
+        
+        override def getName() = name
 
 	override def getEntitySpecs():Iterable[EntitySpec] = {
 	        val dbAccess = new DBAccess(driver, url, username, password) 
@@ -24,11 +27,13 @@ class MSSQLEntityReader(driver:String, url:String, username:String, password:Str
 	}
 }
 
-class FileEntityReader(filePath:String) extends EntityReader {
+class FileEntityReader(name:String, filePath:String) extends EntityReader {
 	import java.io.File
 
 	val pp = new jregex.util.io.PathPattern(filePath)
 	val e = pp.enumerateFiles()
+        
+        override def getName() = name
 
 	override def getEntitySpecs():Iterable[EntitySpec] = {
 	   val l = new scala.collection.mutable.ListBuffer[File]()

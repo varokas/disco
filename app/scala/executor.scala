@@ -8,8 +8,10 @@ class Executor {
   def execute() = { 
     val readers = parseReaders()
     GraphDBService.cleanupGraphDb()
-    val entitySpecs = readers.flatMap{ r => r.getEntitySpecs() } 
-    entitySpecs.foreach { es => GraphDBService.createEntity(es.name, es.entityType) }     
+    readers.foreach { r => 
+      val entitiesSpec = r.getEntitySpecs()
+      entitiesSpec.foreach { es => GraphDBService.createEntity(es.name, es.entityType, r.getName()) } 
+    }
   }
 
   def parseDeps():DepsBuilder = {
@@ -33,25 +35,26 @@ class Executor {
     readersNode match {
       case None => return List()
       case Some(readers) => {
-        val eachReader = readers.subKeys.map{ readers.getConfig(_).get }
-        return eachReader.map{ createReader( _ ) }
+        val readerNames = readers.subKeys
+        val eachReader = readerNames.map{ r => (r, readers.getConfig(r).get) }
+        return eachReader.map{ r => createReader( r._1, r._2 ) }
       }
     } 
   }
 
-  private def createReader(config: play.api.Configuration):EntityReader = {
+  private def createReader(name:String, config: play.api.Configuration):EntityReader = {
     val typeNode = config.getString("type") 
     typeNode match {
       case None => throw new IllegalArgumentException("Cannot find type on reader")
       case Some(t) => {
         t match { 
-          case "mssql" => return new MSSQLEntityReader(
+          case "mssql" => return new MSSQLEntityReader(name,
             config.getString("driver").get,
             config.getString("url").get,
             config.getString("username").get, 
             config.getString("password").get
           )
-          case "file" => return new FileEntityReader(config.getString("path").get) 
+          case "file" => return new FileEntityReader(name, config.getString("path").get) 
           case _ => throw new IllegalArgumentException("Unrecognized readers type: " + t) 
         }
       }

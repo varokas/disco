@@ -19,5 +19,11 @@ object Application extends Controller {
       //new com.huskycode.disco.executor.Executor().execute().toString
     //))
   }  
-  
+  def refresh = Action {
+    new com.huskycode.disco.executor.Executor().execute()
+    
+    val entitiesMap = EntityType.values.map { t => (t, GraphDBService.getEntities(t)) }.toMap 
+    val entitiesCount = entitiesMap.mapValues{ e => e.size }
+    Ok(views.html.refresh(entitiesCount))
+  }  
 }

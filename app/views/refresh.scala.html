@@ -1,0 +1,25 @@
+@(entitiesCount:Map[com.huskycode.disco.types.EntityType.Value,Int])
+
+<!DOCTYPE html>
+
+<html>
+<head>
+
+</head>
+<body>
+  Refresh Complete
+  <table>
+    <tr>
+      <th>Type</th>
+      <th>Count</th>
+    </tr>
+  @entitiesCount.map { case (t,count) => 
+    <tr>
+    <td>@t.toString</td>
+    <td>@count</td>
+    </tr>
+  } 
+  </table>
+</body>
+</html>
+
