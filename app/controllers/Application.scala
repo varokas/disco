@@ -19,6 +19,7 @@ object Application extends Controller {
       //new com.huskycode.disco.executor.Executor().execute().toString
     //))
   }  
+
   def refresh = Action {
     new com.huskycode.disco.executor.Executor().execute()
     
@@ -26,4 +27,17 @@ object Application extends Controller {
     val entitiesCount = entitiesMap.mapValues{ e => e.size }
     Ok(views.html.refresh(entitiesCount))
   }  
+
+  def view(entityType:String, name:String) = Action {
+    import com.huskycode.disco.executor._
+
+    val entityTypeEnum = EntityType.withName(entityType)
+
+    val readers = new Executor().parseReaders()
+    val readersMap = readers.map{ r => (r.getName(), r) }.toMap
+    
+    val entity = GraphDBService.getEntity(name,entityTypeEnum) 
+    val content = readersMap(entity.reader).getContent(entityTypeEnum, name)
+    Ok(views.html.view(entity,content))
+  }
 }

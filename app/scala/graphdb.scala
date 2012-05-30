@@ -83,7 +83,7 @@ class GraphDBService(val graphDbDir:String) {
 	    })
 	}
 
-	private[graphdb] def shutdownGraphDb() = {
+	def shutdownGraphDb() = {
 		graphDb.shutdown()
 	}
 }
@@ -99,7 +99,7 @@ class Neo4jEntity private[graphdb](aNode: Node) extends Entity {
 
 	def name = node.getProperty(Neo4jEntity.NAME_PROPERTY).toString
 	def entityType = EntityType.withName(node.getProperty(Neo4jEntity.TYPE_PROPERTY).toString)
-        def reader = node.getProperty(Neo4jEntity.READER_PROPERTY)
+        def reader = node.getProperty(Neo4jEntity.READER_PROPERTY).toString
 
 	def neo4jNode = node
 

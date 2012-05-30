@@ -3,6 +3,7 @@ package com.huskycode.disco.types
 trait Entity {
 	def name: String
 	def entityType: EntityType.Value
+        def reader: String
 }
 
 object EntityType extends Enumeration {

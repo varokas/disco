@@ -10,7 +10,7 @@
   @entitiesMap.map { case (t,el) => 
     <h2>@t.toString</h2>
     <ul>
-     @el.map { e => <li>@e</li> }
+     @el.map { e => <li><a href="@routes.Application.view(t.toString,e)">@e</a> }
     </ul>  
   } 
 </body>

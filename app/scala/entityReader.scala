@@ -8,6 +8,7 @@ case class EntitySpec(name:String, entityType:EntityType.Value)
 trait EntityReader {
    def getName():String
 	def getEntitySpecs():Iterable[EntitySpec]
+   def getContent(entityType:EntityType.Value, name:String):String
 }
 
 class MSSQLEntityReader(name:String, driver:String, url:String, username:String, password:String) extends EntityReader {
@@ -18,13 +19,19 @@ class MSSQLEntityReader(name:String, driver:String, url:String, username:String,
 		EntityType.Trigger -> "SELECT name from sys.triggers",
 		EntityType.Function -> "select name from sys.objects where type='FN'"
 	)
-        
+        val contentQueryTemplate = "SELECT definition FROM sys.sql_modules where object_id = OBJECT_ID('?')"
         override def getName() = name
 
 	override def getEntitySpecs():Iterable[EntitySpec] = {
 	        val dbAccess = new DBAccess(driver, url, username, password) 
 		queries.flatMap{ case (typ, query) => dbAccess.query( query, rs => new EntitySpec(rs.getString("name"), typ)  )}
 	}
+
+        override def getContent(entityType:EntityType.Value, name:String):String = {
+	        val dbAccess = new DBAccess(driver, url, username, password) 
+           val contentQuery = contentQueryTemplate.replace("?",name.replace("'","''")) 
+           return dbAccess.query(contentQuery, rs => rs.getString("definition")).fold("")((acc,n) => acc + "\n" + n)
+        }
 }
 
 class FileEntityReader(name:String, filePath:String) extends EntityReader {
@@ -43,6 +50,10 @@ class FileEntityReader(name:String, filePath:String) extends EntityReader {
 	   val specs = l.map( f => new EntitySpec(f.getAbsolutePath(), EntityType.File) )
 	   return specs.toList 
 	}
+
+        override def getContent(entityType:EntityType.Value, name:String):String = {
+           return scala.io.Source.fromFile(name).mkString
+        }
 }
 
 class DBAccess(className: String, uri: String, username:String, password:String) {
