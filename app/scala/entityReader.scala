@@ -11,28 +11,54 @@ trait EntityReader {
    def getContent(entityType:EntityType.Value, name:String):String
 }
 
-class MSSQLEntityReader(name:String, driver:String, url:String, username:String, password:String) extends EntityReader {
+abstract class MSSQLEntityReader(name:String, driver:String, url:String, username:String, password:String) extends EntityReader {
 	val dbAccess = new DBAccess(driver, url, username, password) 
-	val queries = Map( 
-		EntityType.StoredProc -> "SELECT name from sys.procedures",
-		EntityType.View -> "SELECT name from sys.views",
-		EntityType.Table -> "SELECT name from sys.tables",
-		EntityType.Trigger -> "SELECT name from sys.triggers",
-		EntityType.Function -> "select name from sys.objects where type='FN'"
-	)
+
+	protected def getQuery():String
+	protected def getEntityType():EntityType.Value
         
     val contentQueryTemplate = "SELECT definition FROM sys.sql_modules where object_id = OBJECT_ID('?')"
     
     override def getName() = name
 
 	override def getEntitySpecs():Iterable[EntitySpec] = {
-		queries.flatMap{ case (typ, query) => dbAccess.query( query, rs => new EntitySpec(rs.getString("name"), typ)  )}
+		dbAccess.query( getQuery(), rs => new EntitySpec(rs.getString("name"), getEntityType()) )
 	}
 
     override def getContent(entityType:EntityType.Value, name:String):String = {
        val contentQuery = contentQueryTemplate.replace("?",name.replace("'","''")) 
        return dbAccess.query(contentQuery, rs => rs.getString("definition")).fold("")((acc,n) => acc + "\n" + n)
     }
+}
+
+class MSSQLSPReader(name:String, driver:String, url:String, username:String, password:String) 
+  extends MSSQLEntityReader(name,driver,url, username,password) {
+	override protected def getQuery() = "SELECT name from sys.procedures"
+	override protected def getEntityType() = EntityType.StoredProc
+}
+
+class MSSQLViewReader(name:String, driver:String, url:String, username:String, password:String)
+  extends MSSQLEntityReader(name,driver,url, username,password) {
+	override protected def getQuery() = "SELECT name from sys.views"
+	override protected def getEntityType() = EntityType.View
+}
+
+class MSSQLTableReader(name:String, driver:String, url:String, username:String, password:String)
+  extends MSSQLEntityReader(name,driver,url, username,password) {
+	override protected def getQuery() = "SELECT name from sys.tables"
+	override protected def getEntityType() = EntityType.Table
+}
+
+class MSSQLTriggerReader(name:String, driver:String, url:String, username:String, password:String)
+  extends MSSQLEntityReader(name,driver,url, username,password) {
+	override protected def getQuery() = "SELECT name from sys.triggers"
+	override protected def getEntityType() = EntityType.Trigger
+}
+
+class MSSQLFunctionReader(name:String, driver:String, url:String, username:String, password:String)
+  extends MSSQLEntityReader(name,driver,url, username,password) {
+	override protected def getQuery() = "select name from sys.objects where type='FN'"
+	override protected def getEntityType() = EntityType.Function
 }
 
 class FileEntityReader(name:String, filePath:String) extends EntityReader {

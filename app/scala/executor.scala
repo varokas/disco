@@ -39,6 +39,8 @@ class Executor {
         }
       }
     }
+
+    
   }
 
   def containsEntity(content:String, entityName:String) = if(content != null) content.contains(entityName) else false
