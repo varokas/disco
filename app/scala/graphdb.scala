@@ -26,7 +26,7 @@ class GraphDBService(val graphDbDir:String) {
 
 	val ENTITY_INDEX_KEY = "entity"
 	val TYPE_INDEX_KEY = "type"
-        val READER_INDEX_KEY = "reader" 
+    val READER_INDEX_KEY = "reader" 
 
 	val graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(graphDbDir);
 	val index = graphDb.index().forNodes("nodes") 
