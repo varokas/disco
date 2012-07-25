@@ -1,4 +1,4 @@
-@(entity:com.huskycode.disco.types.Entity, content:String)
+@(entity:com.huskycode.disco.types.Entity, content:String, dependsOn:List[com.huskycode.disco.types.Entity])
 <html>
 <head>
   <title>View</title>
@@ -8,9 +8,15 @@
 </head>
 <body onload="prettyPrint()">
 <h1>@entity.name</h1>
-<div>@entity.entityType.toString</div>
+<h2>@entity.entityType.toString</h2>
+<div>Depends on</div>
+<ul>
+@dependsOn.map { en =>
+	<li>@(en.name)</li>
+}
+</ul>
+<div>Content</div>
 <pre id="content" class="prettyprint linenums:1">@content</pre>
-<pre class="prettyprint">select * from <a href="#" style="background-color:yellow">sem_service</a></pre>
 </body>
 </html>
 

@@ -7,11 +7,12 @@ case class EntitySpec(name:String, entityType:EntityType.Value)
 
 trait EntityReader {
    def getName():String
-	def getEntitySpecs():Iterable[EntitySpec]
+   def getEntitySpecs():Iterable[EntitySpec]
    def getContent(entityType:EntityType.Value, name:String):String
 }
 
 class MSSQLEntityReader(name:String, driver:String, url:String, username:String, password:String) extends EntityReader {
+	        val dbAccess = new DBAccess(driver, url, username, password) 
 	val queries = Map( 
 		EntityType.StoredProc -> "SELECT name from sys.procedures",
 		EntityType.View -> "SELECT name from sys.views",
@@ -23,12 +24,10 @@ class MSSQLEntityReader(name:String, driver:String, url:String, username:String,
         override def getName() = name
 
 	override def getEntitySpecs():Iterable[EntitySpec] = {
-	        val dbAccess = new DBAccess(driver, url, username, password) 
 		queries.flatMap{ case (typ, query) => dbAccess.query( query, rs => new EntitySpec(rs.getString("name"), typ)  )}
 	}
 
         override def getContent(entityType:EntityType.Value, name:String):String = {
-	        val dbAccess = new DBAccess(driver, url, username, password) 
            val contentQuery = contentQueryTemplate.replace("?",name.replace("'","''")) 
            return dbAccess.query(contentQuery, rs => rs.getString("definition")).fold("")((acc,n) => acc + "\n" + n)
         }

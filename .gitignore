@@ -6,5 +6,10 @@ tmp
 .history
 dist
 
+*.sublime-project
+*.sublime-workspace
+.classpath
+.project
+.settings/
 conf/dev.conf
 *.swp
