@@ -170,7 +170,7 @@ class Neo4jEntity private[graphdb](aNode: Node) extends Entity {
 		new org.apache.commons.lang.builder.ToStringBuilder(this)
 			.append("name", name)
 			.append("type", entityType.toString)
-                        .append("reader", reader)
+            .append("reader", reader)
 			.toString
 	}
 

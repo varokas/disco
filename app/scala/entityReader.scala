@@ -12,7 +12,7 @@ trait EntityReader {
 }
 
 class MSSQLEntityReader(name:String, driver:String, url:String, username:String, password:String) extends EntityReader {
-	        val dbAccess = new DBAccess(driver, url, username, password) 
+	val dbAccess = new DBAccess(driver, url, username, password) 
 	val queries = Map( 
 		EntityType.StoredProc -> "SELECT name from sys.procedures",
 		EntityType.View -> "SELECT name from sys.views",
@@ -20,17 +20,19 @@ class MSSQLEntityReader(name:String, driver:String, url:String, username:String,
 		EntityType.Trigger -> "SELECT name from sys.triggers",
 		EntityType.Function -> "select name from sys.objects where type='FN'"
 	)
-        val contentQueryTemplate = "SELECT definition FROM sys.sql_modules where object_id = OBJECT_ID('?')"
-        override def getName() = name
+        
+    val contentQueryTemplate = "SELECT definition FROM sys.sql_modules where object_id = OBJECT_ID('?')"
+    
+    override def getName() = name
 
 	override def getEntitySpecs():Iterable[EntitySpec] = {
 		queries.flatMap{ case (typ, query) => dbAccess.query( query, rs => new EntitySpec(rs.getString("name"), typ)  )}
 	}
 
-        override def getContent(entityType:EntityType.Value, name:String):String = {
-           val contentQuery = contentQueryTemplate.replace("?",name.replace("'","''")) 
-           return dbAccess.query(contentQuery, rs => rs.getString("definition")).fold("")((acc,n) => acc + "\n" + n)
-        }
+    override def getContent(entityType:EntityType.Value, name:String):String = {
+       val contentQuery = contentQueryTemplate.replace("?",name.replace("'","''")) 
+       return dbAccess.query(contentQuery, rs => rs.getString("definition")).fold("")((acc,n) => acc + "\n" + n)
+    }
 }
 
 class FileEntityReader(name:String, filePath:String) extends EntityReader {
@@ -66,6 +68,3 @@ class DBAccess(className: String, uri: String, username:String, password:String)
     Stream.continually(rs).takeWhile(rs => rs.next()).map(mapper).toList
   }
 }
-
-//"SELECT definition FROM sys.sql_modules where object_id = OBJECT_ID(?)"
-//"SELECT " + columnName + " FROM "+ tableName, String.class)
