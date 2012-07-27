@@ -1,5 +1,4 @@
 package com.huskycode.disco.executor
-import com.huskycode.disco.deps._
 import com.huskycode.disco.graphdb._
 import com.huskycode.disco.parser._
 
