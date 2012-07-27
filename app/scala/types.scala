@@ -2,9 +2,8 @@ package com.huskycode.disco.types
 
 trait Entity {
 	def name: String
-	def entityType: EntityType.Value
-        def reader: String
-        def content: String
+    def reader: String
+    def content: String
 }
 
 object EntityType extends Enumeration {

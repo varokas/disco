@@ -5,6 +5,6 @@
 # Home page
 GET     /                           controllers.Application.index
 GET     /refresh                    controllers.Application.refresh
-GET     /view/t/:entityType/n/:name controllers.Application.view(entityType:String, name:String)
+GET     /view/r/:reader/n/:name controllers.Application.view(reader:String, name:String)
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

@@ -10,7 +10,7 @@
   @entitiesMap.map { case (r,el) => 
     <h2>@r</h2>
     <ul>
-     @el.map { e => <li><a href="@routes.Application.view(e.entityType.toString,java.net.URLEncoder.encode(e.name,"UTF-8"))">@e.name</a> }
+     @el.map { e => <li><a href="@routes.Application.view(e.reader.toString,java.net.URLEncoder.encode(e.name,"UTF-8"))">@e.name</a> }
     </ul>  
   } 
 </body>

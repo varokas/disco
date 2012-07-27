@@ -22,7 +22,7 @@ class Executor {
 
     entitySpecsByReader.foreach { case(r,specs) => 
       specs.foreach { es => GraphDBService.createEntity(
-         es.name, es.entityType, r.getName(), r.getContent(es.entityType, es.name)) } 
+         es.name, r.getName(), r.getContent(es.name)) } 
     }
     
     val readersMap = readers.map{ r => (r.getName(), r) }.toMap
@@ -37,10 +37,10 @@ class Executor {
 
       for(fromEntitySpec <- fromEntities) {
         for(toEntitySpec <- toEntities) {
-          val fromEntity = GraphDBService.getEntity(fromEntitySpec.name, fromEntitySpec.entityType)
+          val fromEntity = GraphDBService.getEntity(fromEntitySpec.name, fromReader.getName())
           
           if(containsEntity(fromEntity.content, toEntitySpec.name)) {
-               val toEntity = GraphDBService.getEntity(toEntitySpec.name, toEntitySpec.entityType)
+               val toEntity = GraphDBService.getEntity(toEntitySpec.name, toReader.getName())
 
                if(!fromEntity.equals(toEntity)) {
                 GraphDBService.createDependency(fromEntity, toEntity)

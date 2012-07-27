@@ -11,7 +11,7 @@ import org.apache.commons.lang3.StringEscapeUtils
 
 object Application extends Controller {
   def index = Action {
-    val allEntities = EntityType.values.flatMap{ t => GraphDBService.getEntities(t) }
+    val allEntities = GraphDBService.getEntities()
     val sortedEntitiesMap = allEntities
           .groupBy{ _.reader }
           .mapValues{ e => e.toList.sortBy(_.name) }
@@ -21,16 +21,13 @@ object Application extends Controller {
   def refresh = Action {
     new com.huskycode.disco.executor.Executor().execute()
     
-    val entitiesMap = EntityType.values.map { t => (t, GraphDBService.getEntities(t)) }.toMap 
-    val entitiesCount = entitiesMap.mapValues{ e => e.size }
-    Ok(views.html.refresh(entitiesCount))
+    Ok("okay")
   }  
 
-  def view(entityType:String, name:String) = Action {
-    val entityTypeEnum = EntityType.withName(entityType)
-    val entity = GraphDBService.getEntity(name,entityTypeEnum) 
-    val dependsOn = GraphDBService.getDependOnEntites(name, entityTypeEnum)
-    val dependsBy = GraphDBService.getDependByEntites(name, entityTypeEnum)
+  def view(reader:String, name:String) = Action {
+    val entity = GraphDBService.getEntity(name,reader) 
+    val dependsOn = GraphDBService.getDependOnEntites(name, reader)
+    val dependsBy = GraphDBService.getDependByEntites(name, reader)
     Ok(views.html.view(entity,getAnnoatedContent(entity.content, dependsOn), dependsOn, dependsBy))
   }
 
@@ -54,7 +51,7 @@ object Application extends Controller {
 
   private def getLinkToEntity(entity: Entity):String = {
     "<a class='ent_" + entity.name + "' style='background-color:yellow' href='" + 
-    controllers.routes.Application.view(entity.entityType.toString,entity.name).toString + 
+    controllers.routes.Application.view(entity.reader,entity.name).toString + 
     "'>" +
     entity.name + 
     "</a>"

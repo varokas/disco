@@ -3,29 +3,28 @@ package com.huskycode.disco.reader
 import com.huskycode.disco.types._
 import java.sql.{ResultSet, DriverManager}
 
-case class EntitySpec(name:String, entityType:EntityType.Value)
+case class EntitySpec(name:String)
 
 trait EntityReader {
    def getName():String
    def getEntitySpecs():Iterable[EntitySpec]
-   def getContent(entityType:EntityType.Value, name:String):String
+   def getContent(name:String):String
 }
 
 abstract class MSSQLEntityReader(name:String, driver:String, url:String, username:String, password:String) extends EntityReader {
 	val dbAccess = new DBAccess(driver, url, username, password) 
 
 	protected def getQuery():String
-	protected def getEntityType():EntityType.Value
         
     val contentQueryTemplate = "SELECT definition FROM sys.sql_modules where object_id = OBJECT_ID('?')"
     
     override def getName() = name
 
 	override def getEntitySpecs():Iterable[EntitySpec] = {
-		dbAccess.query( getQuery(), rs => new EntitySpec(rs.getString("name"), getEntityType()) )
+		dbAccess.query( getQuery(), rs => new EntitySpec(rs.getString("name") ) )
 	}
 
-    override def getContent(entityType:EntityType.Value, name:String):String = {
+    override def getContent(name:String):String = {
        val contentQuery = contentQueryTemplate.replace("?",name.replace("'","''")) 
        return dbAccess.query(contentQuery, rs => rs.getString("definition")).fold("")((acc,n) => acc + "\n" + n)
     }
@@ -34,31 +33,26 @@ abstract class MSSQLEntityReader(name:String, driver:String, url:String, usernam
 class MSSQLSPReader(name:String, driver:String, url:String, username:String, password:String) 
   extends MSSQLEntityReader(name,driver,url, username,password) {
 	override protected def getQuery() = "SELECT name from sys.procedures"
-	override protected def getEntityType() = EntityType.StoredProc
 }
 
 class MSSQLViewReader(name:String, driver:String, url:String, username:String, password:String)
   extends MSSQLEntityReader(name,driver,url, username,password) {
 	override protected def getQuery() = "SELECT name from sys.views"
-	override protected def getEntityType() = EntityType.View
 }
 
 class MSSQLTableReader(name:String, driver:String, url:String, username:String, password:String)
   extends MSSQLEntityReader(name,driver,url, username,password) {
 	override protected def getQuery() = "SELECT name from sys.tables"
-	override protected def getEntityType() = EntityType.Table
 }
 
 class MSSQLTriggerReader(name:String, driver:String, url:String, username:String, password:String)
   extends MSSQLEntityReader(name,driver,url, username,password) {
 	override protected def getQuery() = "SELECT name from sys.triggers"
-	override protected def getEntityType() = EntityType.Trigger
 }
 
 class MSSQLFunctionReader(name:String, driver:String, url:String, username:String, password:String)
   extends MSSQLEntityReader(name,driver,url, username,password) {
 	override protected def getQuery() = "select name from sys.objects where type='FN'"
-	override protected def getEntityType() = EntityType.Function
 }
 
 class FileEntityReader(name:String, filePath:String) extends EntityReader {
@@ -77,11 +71,11 @@ class FileEntityReader(name:String, filePath:String) extends EntityReader {
 	     	l += f
 	     }
 	   }
-	   val specs = l.map( f => new EntitySpec(f.getAbsolutePath(), EntityType.File) )
+	   val specs = l.map( f => new EntitySpec(f.getAbsolutePath()) )
 	   return specs.toList 
 	}
 
-        override def getContent(entityType:EntityType.Value, name:String):String = {
+        override def getContent(name:String):String = {
            try {
            	  return scala.io.Source.fromFile(name, "UTF-8").mkString
            }
