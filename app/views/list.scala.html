@@ -1,4 +1,4 @@
-@(entitiesMap:Map[com.huskycode.disco.types.EntityType.Value,List[String]])
+@(entitiesMap:Map[String, List[com.huskycode.disco.types.Entity]])
 
 <!DOCTYPE html>
 
@@ -7,10 +7,10 @@
 
 </head>
 <body>
-  @entitiesMap.map { case (t,el) => 
-    <h2>@t.toString</h2>
+  @entitiesMap.map { case (r,el) => 
+    <h2>@r</h2>
     <ul>
-     @el.map { e => <li><a href="@routes.Application.view(t.toString,java.net.URLEncoder.encode(e,"UTF-8"))">@e</a> }
+     @el.map { e => <li><a href="@routes.Application.view(e.entityType.toString,java.net.URLEncoder.encode(e.name,"UTF-8"))">@e.name</a> }
     </ul>  
   } 
 </body>

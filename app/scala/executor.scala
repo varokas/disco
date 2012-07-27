@@ -3,6 +3,8 @@ import com.huskycode.disco.deps._
 import com.huskycode.disco.graphdb._
 import com.huskycode.disco.parser._
 
+import play.api.libs.iteratee.PushEnumerator
+
 class Executor {
   val configParser = new ConfigParserImpl()
 
@@ -10,6 +12,11 @@ class Executor {
   def execute() = { 
     val readers = configParser.parseReaders()
     GraphDBService.cleanupGraphDb()
+
+    configParser.parseRunners().foreach { c =>
+      val res = c.runCommand() 
+      if(res.exitVal != 0) throw new RuntimeException(res.output)
+    }
 
     val entitySpecsByReader = readers.map { r => (r, r.getEntitySpecs()) }.toMap
 
@@ -31,17 +38,26 @@ class Executor {
       for(fromEntitySpec <- fromEntities) {
         for(toEntitySpec <- toEntities) {
           val fromEntity = GraphDBService.getEntity(fromEntitySpec.name, fromEntitySpec.entityType)
+          
           if(containsEntity(fromEntity.content, toEntitySpec.name)) {
-             val toEntity = GraphDBService.getEntity(toEntitySpec.name, toEntitySpec.entityType)
+               val toEntity = GraphDBService.getEntity(toEntitySpec.name, toEntitySpec.entityType)
 
-             GraphDBService.createDependency(fromEntity, toEntity)
-          }
+               if(!fromEntity.equals(toEntity)) {
+                GraphDBService.createDependency(fromEntity, toEntity)
+                }
+            }
         }
       }
     }
 
-    
+
   }
 
-  def containsEntity(content:String, entityName:String) = if(content != null) content.contains(entityName) else false
+  def containsEntity(content:String, entityName:String) = { 
+    if (content != null) {
+      val pattern = new jregex.Pattern("[\\s^]" + entityName + "[\\s$]")
+      pattern.matcher(content).find()
+    } 
+    else false
+  }
 }

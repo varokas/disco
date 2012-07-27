@@ -2,6 +2,7 @@ package com.huskycode.disco.parser
 
 import com.huskycode.disco.types.Dep
 import com.huskycode.disco.reader._
+import com.huskycode.disco.runner._
 
 class ConfigParserImpl {
  val playConfig = play.api.Play.current.configuration 
@@ -12,11 +13,22 @@ class ConfigParserImpl {
       case Some(deps) => {
         val depLines = deps.subKeys.map { deps.getConfig(_).get } 
         depLines.toList.flatMap{ depLine => 
-          val from = depLine.getString("from").get
-          val tos = depLine.getString("to").get.split(",").toList
+          val froms = depLine.getString("from").get.split(",").map( _.trim() ).toList
+          val tos = depLine.getString("to").get.split(",").map( _.trim() ).toList
           
-          return tos.map{ t => new Dep(from, t) }
+          return froms.flatMap{ f => tos.map{ t => new Dep(f, t) } }
         }
+      }
+      case _ => return List() 
+    }
+  }
+
+  def parseRunners():Iterable[CommandRunner] = {
+    playConfig.getConfig("runners") match {
+      case Some(runners) => {
+        val runnerLines = runners.subKeys.map { runners.getConfig(_).get } 
+      
+        runnerLines.map{ c => new CommandRunner(c.getString("command").get ) }
       }
       case _ => return List() 
     }

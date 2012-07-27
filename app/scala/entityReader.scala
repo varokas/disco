@@ -72,14 +72,22 @@ class FileEntityReader(name:String, filePath:String) extends EntityReader {
 	override def getEntitySpecs():Iterable[EntitySpec] = {
 	   val l = new scala.collection.mutable.ListBuffer[File]()
 	   while(e.hasMoreElements()) {
-	     l += e.nextElement().asInstanceOf[File]
+	     val f = e.nextElement().asInstanceOf[File]
+	     if(f.isFile()) {
+	     	l += f
+	     }
 	   }
 	   val specs = l.map( f => new EntitySpec(f.getAbsolutePath(), EntityType.File) )
 	   return specs.toList 
 	}
 
         override def getContent(entityType:EntityType.Value, name:String):String = {
-           return scala.io.Source.fromFile(name).mkString
+           try {
+           	  return scala.io.Source.fromFile(name, "UTF-8").mkString
+           }
+           catch {
+           	  case e: Exception => e.toString()
+           }
         }
 }
 

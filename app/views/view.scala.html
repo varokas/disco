@@ -1,4 +1,5 @@
-@(entity:com.huskycode.disco.types.Entity, content:String, dependsOn:List[com.huskycode.disco.types.Entity])
+@(entity:com.huskycode.disco.types.Entity, content:String, dependsOn:List[com.huskycode.disco.types.Entity], dependsBy:List[com.huskycode.disco.types.Entity])
+
 <html>
 <head>
   <title>View</title>
@@ -12,11 +13,17 @@
 <div>Depends on</div>
 <ul>
 @dependsOn.map { en =>
-	<li>@(en.name)</li>
+	<li>@(en.name) (@(en.reader))</li>
+}
+</ul>
+<div>Is a dependency of</div>
+<ul>
+@dependsBy.map { en =>
+	<li>@(en.name)  (@(en.reader))</li>
 }
 </ul>
 <div>Content</div>
-<pre id="content" class="prettyprint linenums:1">@content</pre>
+<pre id="content" class="prettyprint linenums:1">@Html(content)</pre>
 </body>
 </html>
 

@@ -29,7 +29,7 @@ class GraphDBService(val graphDbDir:String) {
     val READER_INDEX_KEY = "reader" 
 
 	val graphDb = new GraphDatabaseFactory().newEmbeddedDatabase(graphDbDir);
-	val index = graphDb.index().forNodes("nodes") 
+	var index = graphDb.index().forNodes("nodes") 
 	registerShutdownHook()
 
 	def createEntity(name:String, entityType:EntityType.Value, reader:String, content:String):Entity = {
@@ -90,16 +90,16 @@ class GraphDBService(val graphDbDir:String) {
 	def getEntitiesByReader(reader: String):List[Entity] = {
 		val result = index.get(READER_INDEX_KEY, reader)
                 return getResultList(result)
-	} 
+	}
 
-	def getDependOnEntites(name:String, entityType:EntityType.Value):List[Entity] = {
+	private def getDependencies(name:String, entityType:EntityType.Value, d:Direction):List[Entity] = {
 		val aNode = index.get(ENTITY_INDEX_KEY, getIndexValue(name, entityType)).getSingle
 		return if(aNode != null) {
           val tx = graphDb.beginTx() 
           try { 
-            val result = aNode.getRelationships(RelTypes.DEPENDS_ON, Direction.OUTGOING) 
+            val result = aNode.getRelationships(RelTypes.DEPENDS_ON, d) 
             tx.success() 
-            return result.map{ rel => new Neo4jEntity(rel.getEndNode()) }.toList
+            return result.map{ rel => new Neo4jEntity(if (d==Direction.OUTGOING) rel.getEndNode() else rel.getStartNode() ) }.toList
           } 
           finally { 
             tx.finish()
@@ -109,6 +109,14 @@ class GraphDBService(val graphDbDir:String) {
 		else {
 			List()
 		}
+	} 
+
+	def getDependByEntites(name:String, entityType:EntityType.Value):List[Entity] = {
+		getDependencies(name,entityType, Direction.INCOMING)
+	}
+
+	def getDependOnEntites(name:String, entityType:EntityType.Value):List[Entity] = {
+		getDependencies(name,entityType, Direction.OUTGOING)
 	}
  
         private def getResultList(result: Iterator[org.neo4j.graphdb.Node]) = {
@@ -127,6 +135,11 @@ class GraphDBService(val graphDbDir:String) {
 		try
 		{
 		    val globalOps = GlobalGraphOperations.at(graphDb)
+		    
+		    //DEAL with how we delete index !!
+		    //index.delete()
+		    //index = graphDb.index().forNodes("nodes") 
+
 		    globalOps.getAllRelationships().foreach( r => r.delete() )
 		    globalOps.getAllNodes().foreach( r => r.delete() )
 		    tx.success()
