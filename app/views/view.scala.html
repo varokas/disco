@@ -12,14 +12,14 @@
 <h2>@entity.reader</h2>
 <div>Depends on</div>
 <ul>
-@dependsOn.map { en =>
-	<li>@(en.name) (@(en.reader))</li>
+@dependsOn.map { e =>
+	<li><a href="@routes.Application.view(e.reader.toString,java.net.URLEncoder.encode(e.name,"UTF-8"))">@e.name</a></li>
 }
 </ul>
 <div>Is a dependency of</div>
 <ul>
-@dependsBy.map { en =>
-	<li>@(en.name)  (@(en.reader))</li>
+@dependsBy.map { e =>
+	<li><a href="@routes.Application.view(e.reader.toString,java.net.URLEncoder.encode(e.name,"UTF-8"))">@e.name</a></li>
 }
 </ul>
 <div>Content</div>
