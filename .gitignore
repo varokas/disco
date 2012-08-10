@@ -12,4 +12,5 @@ dist
 .project
 .settings/
 conf/dev.conf
+conf/dev2.conf
 *.swp

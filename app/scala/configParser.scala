@@ -11,15 +11,18 @@ class ConfigParserImpl {
  
     playConfig.getConfig("deps") match {
       case Some(deps) => {
-        val depLines = deps.subKeys.map { deps.getConfig(_).get } 
-        depLines.toList.flatMap{ depLine => 
+        val depLines = deps.subKeys.map { deps.getConfig(_).get }.toList
+
+        val retVal:Iterable[List[Dep]] = depLines.map{ depLine => 
           val froms = depLine.getString("from").get.split(",").map( _.trim() ).toList
           val tos = depLine.getString("to").get.split(",").map( _.trim() ).toList
           
-          return froms.flatMap{ f => tos.map{ t => new Dep(f, t) } }
+          for( f <- froms; t <- tos ) yield new Dep(f, t)
         }
+
+        return retVal.flatten.toList
       }
-      case _ => return List() 
+      case _ => return List()
     }
   }
 
@@ -78,6 +81,13 @@ class ConfigParserImpl {
 	          case "mssql_table" => new MSSQLTableReader(name, dbConfig.driver,dbConfig.url, dbConfig.username, dbConfig.password)
 	          case "mssql_trigger" => new MSSQLTriggerReader(name, dbConfig.driver,dbConfig.url, dbConfig.username, dbConfig.password)
 	          case "mssql_function" => new MSSQLFunctionReader(name, dbConfig.driver,dbConfig.url, dbConfig.username, dbConfig.password)
+
+            case "oracle_stored_proc" => new OracleSPReader(name, dbConfig.driver,dbConfig.url, dbConfig.username, dbConfig.password)
+            case "oracle_view" => new OracleViewReader(name, dbConfig.driver,dbConfig.url, dbConfig.username, dbConfig.password)
+            case "oracle_table" => new OracleTableReader(name, dbConfig.driver,dbConfig.url, dbConfig.username, dbConfig.password)
+            case "oracle_trigger" => new OracleTriggerReader(name, dbConfig.driver,dbConfig.url, dbConfig.username, dbConfig.password)
+            case "oracle_function" => new OracleFunctionReader(name, dbConfig.driver,dbConfig.url, dbConfig.username, dbConfig.password)
+
 	          case _ => throw new IllegalArgumentException("Unrecognized db readers type: " + t) 
 	        }
     	}

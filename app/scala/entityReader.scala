@@ -55,13 +55,57 @@ class MSSQLFunctionReader(name:String, driver:String, url:String, username:Strin
 	override protected def getQuery() = "select name from sys.objects where type='FN'"
 }
 
+abstract class OracleEntityReader(name:String, driver:String, url:String, username:String, password:String) extends EntityReader {
+  val dbAccess = new DBAccess(driver, url, username, password) 
+  override def getName() = name
+
+  private def getQueryTemplate() = "select * from user_objects where object_type = '%s'"
+  private def getContentQueryTemplate() = "select text from user_source Where Type = '%s' and name = '%s'"
+
+  protected def getType():String
+  
+  override def getEntitySpecs():Iterable[EntitySpec] = {
+    dbAccess.query( String.format(getQueryTemplate(), getType()), rs => new EntitySpec(rs.getString("OBJECT_NAME") ) )
+  }
+
+  override def getContent(name:String):String = {
+     val contentQuery = String.format(getContentQueryTemplate(), getType(), name.replace("'","''")) 
+     return dbAccess.query(contentQuery, rs => rs.getString("TEXT")).fold("")((acc,n) => acc + "\n" + n)
+  }
+}
+
+class OracleSPReader(name:String, driver:String, url:String, username:String, password:String) 
+  extends OracleEntityReader(name,driver,url, username,password) {
+  override protected def getType() = "PROCEDURE"
+}
+
+class OracleViewReader(name:String, driver:String, url:String, username:String, password:String)
+  extends OracleEntityReader(name,driver,url, username,password) {
+   override protected def getType() = "VIEW"
+}
+
+class OracleTableReader(name:String, driver:String, url:String, username:String, password:String)
+  extends OracleEntityReader(name,driver,url, username,password) {
+  override protected def getType() = "TABLE"
+}
+
+class OracleTriggerReader(name:String, driver:String, url:String, username:String, password:String)
+  extends OracleEntityReader(name,driver,url, username,password) {
+   override protected def getType() = "TRIGGER"
+}
+
+class OracleFunctionReader(name:String, driver:String, url:String, username:String, password:String)
+  extends OracleEntityReader(name,driver,url, username,password) {
+  override protected def getType() = "FUNCTION"
+}
+
 class FileEntityReader(name:String, filePath:String) extends EntityReader {
 	import java.io.File
 
 	val pp = new jregex.util.io.PathPattern(filePath)
 	val e = pp.enumerateFiles()
         
-        override def getName() = name
+  override def getName() = name
 
 	override def getEntitySpecs():Iterable[EntitySpec] = {
 	   val l = new scala.collection.mutable.ListBuffer[File]()
@@ -87,12 +131,17 @@ class FileEntityReader(name:String, filePath:String) extends EntityReader {
 
 class DBAccess(className: String, uri: String, username:String, password:String) {
   Class.forName(className)
-  val conn = DriverManager.getConnection(uri, username, password)
+  
 
   def query[E](sql:String, mapper:ResultSet => E):List[E] = {
+    val conn = DriverManager.getConnection(uri, username, password)
     val stmt = conn.createStatement()
     val rs:ResultSet = stmt.executeQuery(sql)
+    
+    val list = Stream.continually(rs).takeWhile(rs => rs.next()).map(mapper).toList
+    rs.close()
+    conn.close()
 
-    Stream.continually(rs).takeWhile(rs => rs.next()).map(mapper).toList
+    return list
   }
 }

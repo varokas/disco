@@ -10,6 +10,8 @@ class Executor {
   
   def execute() = { 
     val readers = configParser.parseReaders()
+    val deps = configParser.parseDeps()
+
     GraphDBService.cleanupGraphDb()
 
     configParser.parseRunners().foreach { c =>
@@ -25,7 +27,6 @@ class Executor {
     }
     
     val readersMap = readers.map{ r => (r.getName(), r) }.toMap
-    val deps = configParser.parseDeps()
 
     for(dep <- deps) {
       val fromReader = readersMap.get(dep.from).get
@@ -54,7 +55,7 @@ class Executor {
 
   def containsEntity(content:String, entityName:String) = { 
     if (content != null) {
-      val pattern = new jregex.Pattern("[\\s^]" + entityName + "[\\s$]")
+      val pattern = new jregex.Pattern("[\\s\\'\\\"\\[^]" + entityName + "[\\s\\'\\\"\\]$]",jregex.REFlags.IGNORE_CASE)
       pattern.matcher(content).find()
     } 
     else false

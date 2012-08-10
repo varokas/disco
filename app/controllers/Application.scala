@@ -34,7 +34,7 @@ object Application extends Controller {
   private def getAnnoatedContent(content:String, dependsOn:Iterable[Entity]):String = {
     var modifiedContent = StringEscapeUtils.escapeHtml4(content)
     for( dependOnEntity <- dependsOn ) {
-      val pattern = new jregex.Pattern("[\\s^]" + dependOnEntity.name + "[\\s$]")
+      val pattern = new jregex.Pattern("[\\s\\'\\\"\\[^]" + dependOnEntity.name + "[\\s\\'\\\"\\]$]", jregex.REFlags.IGNORE_CASE)
       val replacer = pattern.replacer(new jregex.Substitution() {
         override def appendSubstitution(m: MatchResult, dest:TextBuffer) = {
           val captured = m.group(0)
@@ -50,7 +50,7 @@ object Application extends Controller {
   }
 
   private def getLinkToEntity(entity: Entity):String = {
-    "<a class='ent_" + entity.name + "' style='background-color:yellow' href='" + 
+    "<a class='ent_" + entity.name + "' style='background-color:#f0d770' href='" + 
     controllers.routes.Application.view(entity.reader,entity.name).toString + 
     "'>" +
     entity.name + 
